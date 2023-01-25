@@ -1,10 +1,17 @@
 use std::{thread, mem};
 use std::sync::mpsc;
+use std::time::{Instant};
 
 fn main() {
-    let (sum, n_primes) = list_primes(100, 1);
+    let start = Instant::now();
+
+    let (sum, n_primes) = list_primes(100000000, 8);
+
+    let duration = start.elapsed();
+
     println!("Sum: {:?}", sum);
     println!("Number of Primes: {:?}", n_primes);
+    println!("Time elapsed: {:?}", duration);
 }
 
 fn list_primes(n: i32, nthreads: usize) -> (i64, i32) {
@@ -54,12 +61,12 @@ fn is_prime(n: i32) -> bool {
         return true;
     }
     
-    if n % 2 == 0 || n % 3 == 0 || n == 0 || n == 1{
+    if n % 2 == 0 || n % 3 == 0 || n <= 1{
         return false;
     }
     
-    for i in 4..((n as f64).sqrt() as i32 + 1) {
-        if n % i == 0 {
+    for i in (5..((n as f64).sqrt() as i32 + 1)).step_by(6) {
+        if n % i == 0 || n % (i + 2) == 0 {
             return false;
         }
     }
