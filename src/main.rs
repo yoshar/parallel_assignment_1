@@ -8,7 +8,7 @@ use threadpool::ThreadPool;
 fn main() {
     let start = Instant::now();
 
-    let (sum, n_primes) = list_primes(100000000, 8);
+    let (sum, n_primes) = list_primes(100, 8);
 
     let duration = start.elapsed();
 
@@ -37,6 +37,7 @@ fn list_primes(n: i32, nthreads: usize) -> (i64, i32) {
 
         });
     }
+
     // let (tx, rx) = channel();
     // for i in 0..n { 
     //     let tx = tx.clone();
@@ -50,10 +51,12 @@ fn list_primes(n: i32, nthreads: usize) -> (i64, i32) {
     // }
 
     mem::drop(sender);
-    
+
     for recieved in reciever {
-        sum += recieved as i64;
+        for i in recieved {
         n_primes += 1;
+        sum += i as i64;
+        }
         // if recieved > max {
         //     max = recieved;
 
@@ -67,25 +70,30 @@ fn list_primes(n: i32, nthreads: usize) -> (i64, i32) {
 // nthreads = total number of threads
 // thread_number = which thread is this
 // n = what number to stop at
-fn prime_calc(nthreads: usize, thread_number: i32, n: i32, sender: mpsc::Sender<i32>) {
+fn prime_calc(nthreads: usize, thread_number: i32, n: i32, sender: mpsc::Sender<Vec<i32>>) {
     // for i in (1..n).skip(1).step_by(nthreads * 2) {
     //     if is_prime(i + thread_number) {
     //         sender.send(i + thread_number).unwrap();
     //     }
     // }
+    let mut send: Vec<i32> = vec![]; 
+
     let mut i = thread_number;
     while i < n {
+        // println!("Thread {:?} checking {:?}", thread_number, i);
         if is_prime(i) {
-            sender.send(i).unwrap();
+            send.push(i);
         }
 
-        if(i == thread_number) {
+        if i == thread_number {
             i = i + 1 + nthreads as i32 + thread_number;
         }
         else {
             i += 2 * nthreads as i32; 
         }
     }
+
+    sender.send(send).unwrap();
 }
 
 fn is_prime(n: i32) -> bool {
