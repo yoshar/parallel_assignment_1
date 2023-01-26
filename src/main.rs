@@ -1,7 +1,7 @@
 use std::{thread, mem};
 use std::sync::{mpsc};
 use std::time::{Instant};
-
+use primal::is_prime;
 fn main() {
     let start = Instant::now();
 
@@ -83,7 +83,7 @@ fn prime_calc(nthreads: i32, thread_number: i32, n: i32, sender: mpsc::Sender<Ve
 
     let mut i = thread_number;
     while i < n {
-        if is_prime(i) {
+        if is_prime(i as u64) {
             send.push(i);
         }
 
@@ -98,23 +98,23 @@ fn prime_calc(nthreads: i32, thread_number: i32, n: i32, sender: mpsc::Sender<Ve
     sender.send(send).unwrap();
 }
 
-fn is_prime(n: i32) -> bool {
-    if n == 2 || n == 3 {
-        return true;
-    }
+// fn is_prime(n: i32) -> bool {
+//     if n == 2 || n == 3 {
+//         return true;
+//     }
     
-    if n % 2 == 0 || n % 3 == 0 || n <= 1{
-        return false;
-    }
+//     if n % 2 == 0 || n % 3 == 0 || n <= 1{
+//         return false;
+//     }
     
-    for i in (5..((n as f64).sqrt() as i32 + 1)).step_by(6) {
-        if n % i == 0 || n % (i + 2) == 0 {
-            return false;
-        }
-    }
+//     for i in (5..((n as f64).sqrt() as i32 + 1)).step_by(6) {
+//         if n % i == 0 || n % (i + 2) == 0 {
+//             return false;
+//         }
+//     }
 
-    true
-}
+//     true
+// }
 
 #[cfg(test)]
 mod tests {
