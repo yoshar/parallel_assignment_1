@@ -1,34 +1,34 @@
-use std::path::is_separator;
-use std::thread::JoinHandle;
 use std::{thread, mem};
-use std::sync::{mpsc, RwLock, Arc, Mutex};
+use std::sync::{mpsc};
 use std::time::{Instant};
-use threadpool::ThreadPool;
 
 fn main() {
     let start = Instant::now();
 
-    let (sum, n_primes) = list_primes(100, 8);
+    let (sum, n_primes, list_primes) = list_primes(100000000, 8);
 
     let duration = start.elapsed();
 
+
     println!("Sum: {:?}", sum);
     println!("Number of Primes: {:?}", n_primes);
+    println!("Top 10 Primes: {:?}", list_primes);
     println!("Time elapsed: {:?}", duration);
 }
 
-fn list_primes(n: i32, nthreads: usize) -> (i64, i32) {
+fn list_primes(n: i32, nthreads: i32) -> (i64, i32, [i32; 10]) {
     let mut sum: i64 = 0;
     let mut n_primes: i32 = 0;
-    let counter = Arc::new(Mutex::new(5));
-    // let mut max_primes = [(1 as i32); 10];
-    // let mut max: i32;
+    
+    let mut max_list = [0; 10];
+    let mut count: usize = 0;
+    let mut max: i32 = 0;
+
+    let mut low;
+    let mut index = 0;
+    let mut iter;
 
     let (sender, reciever) = mpsc::channel();
-
-    let mut handles: Vec<JoinHandle<()>> = vec![];
-
-    // let pool = ThreadPool::new(8);
 
     for i in 0..nthreads {
         let sender_n = sender.clone();
@@ -38,58 +38,60 @@ fn list_primes(n: i32, nthreads: usize) -> (i64, i32) {
         });
     }
 
-    // let (tx, rx) = channel();
-    // for i in 0..n { 
-    //     let tx = tx.clone();
-
-    //     pool.execute(move || {
-    //         if is_prime(i) {
-    //             tx.send(i).expect("Pool messed up");
-    //         }
-            
-    //     })
-    // }
-
     mem::drop(sender);
 
     for recieved in reciever {
         for i in recieved {
-        n_primes += 1;
-        sum += i as i64;
-        }
-        // if recieved > max {
-        //     max = recieved;
+            n_primes += 1;
+            sum += i as i64;
+            if i > max {
+                max = i;
+                
+                if count < 9 {
+                    max_list[count] = i;
+                    count += 1;
+                }
+                else {
+                    low = max_list[0];
+                    iter = 0;
 
-            
-    //     // }
+                    for n in max_list {
+                        if low >= n {
+                            low = n;
+                
+                            index = iter;
+                        }
+                
+                        iter += 1;
+                    }
+
+                    max_list[index] = max;
+                }
+
+            }
+        }
     }
 
-    (sum, n_primes)
+    (sum, n_primes, max_list)
 }
 
 // nthreads = total number of threads
 // thread_number = which thread is this
 // n = what number to stop at
-fn prime_calc(nthreads: usize, thread_number: i32, n: i32, sender: mpsc::Sender<Vec<i32>>) {
-    // for i in (1..n).skip(1).step_by(nthreads * 2) {
-    //     if is_prime(i + thread_number) {
-    //         sender.send(i + thread_number).unwrap();
-    //     }
-    // }
+fn prime_calc(nthreads: i32, thread_number: i32, n: i32, sender: mpsc::Sender<Vec<i32>>) {
     let mut send: Vec<i32> = vec![]; 
 
     let mut i = thread_number;
     while i < n {
-        // println!("Thread {:?} checking {:?}", thread_number, i);
         if is_prime(i) {
             send.push(i);
         }
 
         if i == thread_number {
-            i = i + 1 + nthreads as i32 + thread_number;
+            i = i + 1 + nthreads + thread_number;
         }
         else {
-            i += 2 * nthreads as i32; 
+            i += 2 * nthreads; 
         }
     }
 
@@ -114,59 +116,19 @@ fn is_prime(n: i32) -> bool {
     true
 }
 
-// fn prime_calc_sieve(nthreads: usize, n: i32, sender: mpsc::Sender<i32>) {
-//     let sqrt_n = (n as f64).sqrt().ceil() as i32;
-
-//     //possibly dynamicall determine this list
-//     let starting_primes = Arc::new();
-
-//     let mut threads = Vec::new();
-
-//     // let offset = (n - sqrt_n) / nthreads;
-
-//     //play with this value for optomization
-//     let seg_size = 100000;
-    
-//     for i in 0..nthreads {
-//         let starting_primes = starting_primes.clone();
-
-//     }
-// }
-
-// fn seg_sieve(starting_primes: Arc<RwLock<Vec<i32>>>, low: i32, high: i32, seg_size: i32) {
-//     let mut retval = Vec::new();
-
-//     // let mut low = low;
-//     // let mut high = high + seg_size;
-
-//     // let starting_primes = starting_primes.read().unwrap();
-//     let sieving_primes = [3, 5, 7, 11, 13];
-
-
-//     for min in (min_check..max_check).step_by(seg_size) {
-//         let s = low / min * min;
-//         if  s < low {
-//             s += min;
-//         }
-//         for i in (s..max).step_by(min) {
-//             retval[i - low] = 0;
-//         }
-//     }
-// }
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn total_primes() {
-        let (_sum, n_primes) = list_primes(100000000, 8);
+        let (_sum, n_primes, _list) = list_primes(100000000, 8);
         assert_eq!(n_primes, 5761455, "Incorrect number of primes");
     }
 
     #[test]
     fn sum_of_primes() {
-        let (sum, _n_primes) = list_primes(100000000, 8);
+        let (sum, _n_primes, _list) = list_primes(100000000, 8);
         assert_eq!(sum, 279209790387276, "Incorrect sum of primes");
     }
 
@@ -176,4 +138,3 @@ mod tests {
         assert!(!is_prime(10), "is_prime accepted a non-prime");
     }
 }
-
