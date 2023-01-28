@@ -33,7 +33,9 @@ With all of this I was down from ~80s to ~2.5s
 
 ## Current Runtime
 System
-i7-9700k @ stock (3.6gHz - 4.9gHz boost) 8c/8t
+
+i7-9700k @ stock (3.6gHz - 4.9gHz boost) with 8c/8t
+
 2.38s
 
 ## Refrences
