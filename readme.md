@@ -34,4 +34,15 @@ With all of this I was down from ~80s to ~2.5s
 ## Current Runtime
 System
 i7-9700k @ stock (3.6gHz - 4.9gHz boost) 8c/8t
-2.60s
+2.38s
+
+## Refrences
+[https://en.wikipedia.org/wiki/Primality_test#C,_C++,_C#_&_D](https://en.wikipedia.org/wiki/Primality_test#C,_C++,_C#_&_D)
+
+https://rosettacode.org/wiki/Miller%E2%80%93Rabin_primality_test#Deterministic_up_to_341,550,071,728,321
+
+https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test#Mathematical_concepts
+
+https://docs.rs/primal/latest/primal/fn.is_prime.html
+
+https://doc.rust-lang.org/book/ch16-02-message-passing.html
